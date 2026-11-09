@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, CheckCircle2, Compass } from 'lucide-react';
 import { onFrame } from '@/lib/scroll';
 import { clamp, easeOutCubic, lerp, range, sceneProgress } from '@/lib/math';
@@ -83,10 +83,10 @@ export function TrajectoryZigzag({ reducedMotion }: { reducedMotion: boolean }) 
 
   const currentStage = trajectoryStages[leg] || trajectoryStages[0];
 
-  const handleSelectLeg = (idx: number) => {
+  const handleSelectLeg = useCallback((idx: number) => {
     manualOverrideRef.current = Date.now();
     setLeg(idx);
-  };
+  }, []);
 
   return (
     <section
@@ -198,7 +198,7 @@ export function TrajectoryZigzag({ reducedMotion }: { reducedMotion: boolean }) 
             strokeWidth="2"
           />
           <image
-            href={`${import.meta.env.BASE_URL}synji-perfil.webp`}
+            href={`${import.meta.env.BASE_URL}synji-hero.webp`}
             x={ORIGIN_NODE.cx - ORIGIN_NODE.r}
             y={ORIGIN_NODE.cy - ORIGIN_NODE.r}
             width={ORIGIN_NODE.r * 2}
@@ -229,7 +229,7 @@ export function TrajectoryZigzag({ reducedMotion }: { reducedMotion: boolean }) 
             strokeWidth="2.5"
           />
           <image
-            href={`${import.meta.env.BASE_URL}synji-neon.webp`}
+            href={`${import.meta.env.BASE_URL}portraits/editorial.webp`}
             x={DEST_NODE.cx - DEST_NODE.r}
             y={DEST_NODE.cy - DEST_NODE.r}
             width={DEST_NODE.r * 2}

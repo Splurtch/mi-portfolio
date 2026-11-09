@@ -21,6 +21,7 @@ interface PortraitPreset {
   id: string;
   label: string;
   src: string;
+  frame?: number;
   caption: string;
   mood: string;
   warpX: number;
@@ -28,43 +29,12 @@ interface PortraitPreset {
 }
 
 const PORTRAIT_PRESETS: PortraitPreset[] = [
-  {
-    id: 'neon',
-    label: 'Modo Neon / Otaku',
-    src: `${import.meta.env.BASE_URL}synji-neon.webp`,
-    caption: 'Entre Re:Zero, Mushoku Tensei, One Piece y sistemas con IA.',
-    mood: 'MODO NEON · ACTIVO',
-    warpX: 0.14,
-    warpY: 0.08,
-  },
-  {
-    id: 'editorial',
-    label: 'Poster Editorial SYNJI',
-    src: `${import.meta.env.BASE_URL}synji-editorial.webp`,
-    caption: 'De Super NES a Final Fantasy, Kingdom Hearts y MMORPGs de Square Enix.',
-    mood: 'MANA / EXP · 9999',
-    warpX: -0.12,
-    warpY: 0.06,
-  },
-  {
-    id: 'cafe',
-    label: 'Modo Audiolibros & Café',
-    src: `${import.meta.env.BASE_URL}synji-cafe.webp`,
-    caption: 'Encadenando audiolibros en el coche y tirando del hilo de Capricornio.',
-    mood: 'CURIOSIDAD · SIN FILTRO',
-    warpX: 0.09,
-    warpY: -0.09,
-  },
-  {
-    id: 'playa',
-    label: 'Modo Gatos & Familia',
-    src: `${import.meta.env.BASE_URL}synji-playa.webp`,
-    caption: 'En casa con mi mujer, mis hijos, los gatos al mando y cero humo.',
-    mood: 'LATENCIA MENTAL · 12ms',
-    warpX: -0.08,
-    warpY: -0.1,
-  },
+  { id: 'picaro', label: 'Pícaro', src: `${import.meta.env.BASE_URL}portraits/picaro.webp`, caption: 'Arrastra la frente o las mejillas. También puedes elegir un gesto.', mood: 'PÍCARO · EN REPOSO', warpX: 0, warpY: 0 },
+  { id: 'sorpresa', label: 'Sorpresa', src: `${import.meta.env.BASE_URL}portraits/expressions.webp`, frame: 1, caption: 'Esa idea acaba de desbloquear algo.', mood: 'SORPRESA · +1 IDEA', warpX: 0, warpY: -0.06 },
+  { id: 'mejillas', label: 'Mejillas', src: `${import.meta.env.BASE_URL}portraits/expressions.webp`, frame: 2, caption: 'Un poco de presión. Todavía queda paciencia.', mood: 'PACIENCIA · COMPRIMIDA', warpX: 0.07, warpY: 0.02 },
+  { id: 'guino', label: 'Guiño', src: `${import.meta.env.BASE_URL}portraits/expressions.webp`, frame: 3, caption: 'No todo va a ser ponerse serio.', mood: 'COMPLICIDAD · ACTIVADA', warpX: -0.06, warpY: 0 },
 ];
+const portraitImages = new Map<string, HTMLImageElement>();
 
 export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
   const stageRef = useRef<HTMLElement | null>(null);
@@ -82,6 +52,8 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
   const [mobilePanel, setMobilePanel] = useState<'portrait' | 'facets'>('portrait');
 
   const isSceneActiveRef = useRef(false);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (resetTimerRef.current) clearTimeout(resetTimerRef.current); }, []);
   const manualInteractionRef = useRef<number>(0);
   const manualMobilePanelRef = useRef<number>(0);
 
@@ -101,11 +73,13 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
 
   useEffect(() => {
     const p = pointerRef.current;
-    p.anchorU = 0.5;
-    p.anchorV = 0.48;
-    p.velX += activePreset.warpX * 150;
-    p.velY += activePreset.warpY * 150;
-  }, [activePreset]);
+    if (!p.dragging && !reducedMotion) {
+      p.anchorU = 0.5;
+      p.anchorV = 0.48;
+      p.velX += activePreset.warpX * 150;
+      p.velY += activePreset.warpY * 150;
+    }
+  }, [activePreset, reducedMotion]);
 
   useEffect(() => {
     let lastAutoIdx = -1;
@@ -138,7 +112,7 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
       // En móvil (< 1024px), la primera mitad del scroll muestra el retrato elástico (0.00..0.42)
       // y la segunda mitad recorre las 4 facetas y la música (0.42..1.00)
       const now = Date.now();
-      if (now - manualMobilePanelRef.current > 3500) {
+      if (!pointerRef.current.dragging && now - manualMobilePanelRef.current > 3500) {
         const nextMobilePanel = p < 0.42 ? 'portrait' : 'facets';
         if (nextMobilePanel !== lastMobilePanel) {
           lastMobilePanel = nextMobilePanel;
@@ -158,7 +132,6 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
       if (now - manualInteractionRef.current > 3200 && idx !== lastAutoIdx) {
         lastAutoIdx = idx;
         setActiveFacetIdx(idx);
-        setActivePreset(PORTRAIT_PRESETS[idx % PORTRAIT_PRESETS.length]);
         setActiveTrack(playlistFrequencies[idx % (playlistFrequencies.length - 1)]);
       }
     });
@@ -170,9 +143,14 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = activePreset.src;
+    for (const preset of PORTRAIT_PRESETS) {
+      if (!portraitImages.has(preset.src)) {
+        const image = new Image();
+        image.src = preset.src;
+        portraitImages.set(preset.src, image);
+      }
+    }
+    const img = portraitImages.get(activePreset.src)!;
 
     let rafId = 0;
     const cols = 14;
@@ -197,19 +175,23 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
         }
 
         if (img.complete && img.naturalWidth > 0) {
-          const imgAspect = img.naturalWidth / img.naturalHeight;
+          const frameWidth = activePreset.frame === undefined ? img.naturalWidth : img.naturalWidth / 2;
+          const frameHeight = activePreset.frame === undefined ? img.naturalHeight : img.naturalHeight / 2;
+          const frameX = activePreset.frame === undefined ? 0 : (activePreset.frame % 2) * frameWidth;
+          const frameY = activePreset.frame === undefined ? 0 : Math.floor(activePreset.frame / 2) * frameHeight;
+          const imgAspect = frameWidth / frameHeight;
           const canvasAspect = width / height;
           let sx = 0;
           let sy = 0;
-          let sw = img.naturalWidth;
-          let sh = img.naturalHeight;
+          let sw = frameWidth;
+          let sh = frameHeight;
 
           if (imgAspect > canvasAspect) {
-            sw = img.naturalHeight * canvasAspect;
-            sx = (img.naturalWidth - sw) * 0.5;
+            sw = frameHeight * canvasAspect;
+            sx = (frameWidth - sw) * 0.5;
           } else {
-            sh = img.naturalWidth / canvasAspect;
-            sy = (img.naturalHeight - sh) * 0.2;
+            sh = frameWidth / canvasAspect;
+            sy = (frameHeight - sh) * 0.2;
           }
 
           const cellW = width / cols;
@@ -241,8 +223,8 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
               ctx.scale(scaleWarpX, scaleWarpY);
               ctx.drawImage(
                 img,
-                sx + c * srcCellW,
-                sy + r * srcCellH,
+                frameX + sx + c * srcCellW,
+                frameY + sy + r * srcCellH,
                 srcCellW + 1.2,
                 srcCellH + 1.2,
                 -0.6,
@@ -286,6 +268,7 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
     const v = (e.clientY - rect.top) / rect.height;
 
     const p = pointerRef.current;
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     p.dragging = true;
     p.anchorU = u;
     p.anchorV = v;
@@ -299,14 +282,20 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
     if (!p.dragging) return;
     const dx = e.clientX - p.startX;
     const dy = e.clientY - p.startY;
-    p.dispX = clamp(dx * 0.85, -150, 150);
-    p.dispY = clamp(dy * 0.85, -150, 150);
+    p.dispX = reducedMotion ? 0 : clamp(dx * 0.6, -75, 75);
+    p.dispY = reducedMotion ? 0 : clamp(dy * 0.6, -75, 75);
+    if (Math.hypot(dx, dy) > 8) {
+      const index = p.anchorV < 0.38 || dy < -25 ? 1 : p.anchorU > 0.55 ? 3 : 2;
+      setActivePreset(PORTRAIT_PRESETS[index]);
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const p = pointerRef.current;
     if (!p.dragging) return;
     p.dragging = false;
+    manualMobilePanelRef.current = Date.now();
+    resetTimerRef.current = setTimeout(() => setActivePreset(PORTRAIT_PRESETS[0]), 1200);
     setStretchCount((c) => c + 1);
     setPatienceLevel((lvl) => (lvl <= 18 ? 96 : lvl - 9));
     try {
@@ -321,8 +310,11 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
     const p = pointerRef.current;
     p.anchorU = 0.35 + Math.random() * 0.3;
     p.anchorV = 0.35 + Math.random() * 0.3;
-    p.velX = (Math.random() - 0.5) * 190;
-    p.velY = (Math.random() - 0.5) * 190;
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    setActivePreset(PORTRAIT_PRESETS[1 + Math.floor(Math.random() * 3)]);
+    p.velX = reducedMotion ? 0 : (Math.random() - 0.5) * 90;
+    p.velY = reducedMotion ? 0 : (Math.random() - 0.5) * 90;
+    resetTimerRef.current = setTimeout(() => setActivePreset(PORTRAIT_PRESETS[0]), 1200);
     setStretchCount((c) => c + 1);
   };
 
@@ -431,13 +423,16 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
           <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#05070c] max-h-[38svh] sm:max-h-[42svh]">
             <canvas
               ref={canvasRef}
+              role="img"
+              aria-label={`Retrato interactivo de Synji: ${activePreset.label}. Arrastra para cambiar el gesto o utiliza los botones inferiores.`}
               width={420}
               height={440}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
               onPointerCancel={handlePointerUp}
-              className="w-full h-full max-h-[38svh] sm:max-h-[42svh] object-cover cursor-grab active:cursor-grabbing touch-none select-none block"
+              onLostPointerCapture={handlePointerUp}
+              className="w-full h-auto max-h-[38svh] sm:max-h-[42svh] object-cover cursor-grab active:cursor-grabbing touch-none select-none block"
             />
 
             <div className="pointer-events-none absolute top-2 left-2 right-2 flex items-center justify-between font-mono text-[10px]">
@@ -455,16 +450,18 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
           </div>
 
           <div className="flex flex-wrap gap-1.5">
-            {PORTRAIT_PRESETS.map((preset, idx) => {
+            {PORTRAIT_PRESETS.map((preset) => {
               const selected = preset.id === activePreset.id;
               return (
                 <button
                   key={preset.id}
                   type="button"
+                  aria-pressed={selected}
                   onClick={() => {
                     manualInteractionRef.current = Date.now();
+                    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+                    manualMobilePanelRef.current = Date.now();
                     setActivePreset(preset);
-                    setActiveFacetIdx(idx % personalFacets.length);
                   }}
                   className={`rounded-lg px-2 py-1 font-mono text-[10px] transition-colors ${
                     selected
@@ -502,8 +499,7 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
                   onClick={() => {
                     manualInteractionRef.current = Date.now();
                     setActiveFacetIdx(idx);
-                    setActivePreset(PORTRAIT_PRESETS[idx % PORTRAIT_PRESETS.length]);
-                  }}
+                              }}
                   className={`flex items-center gap-1.5 rounded-xl border p-2 text-left transition-colors ${
                     isSelected
                       ? 'border-[#06B6D4]/60 bg-[#181818] text-[#f5f5f5]'
@@ -512,7 +508,7 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
                 >
                   {getFacetIcon(facet.id)}
                   <span className="font-mono text-[10px] sm:text-[11px] font-semibold truncate">
-                    0{idx + 1} · {facet.title.split(' ')[0]}
+                    0{idx + 1} · {facet.title.split(' ')[0].replace(/[,.:;]+$/, '')}
                   </span>
                 </button>
               );
@@ -550,10 +546,12 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
             </ul>
 
             <div className="pt-2 border-t border-white/[0.08] flex flex-wrap gap-1">
-              {activeFacet.favorites.map((fav) => (
+              {activeFacet.favorites.map((fav, i) => (
                 <span
                   key={fav}
-                  className="rounded-md border border-white/[0.08] bg-[#0a0a0a] px-2 py-0.5 font-mono text-[10px] text-[#f5f5f5]"
+                  className={`rounded-md border border-white/[0.08] bg-[#0a0a0a] px-2 py-0.5 font-mono text-[10px] text-[#f5f5f5] ${
+                    i >= 4 ? 'max-sm:hidden' : ''
+                  }`}
                 >
                   {fav}
                 </span>
@@ -618,7 +616,7 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
                   {activeTrack.blocked ? 'BLOCKED' : 'ON AIR'}
                 </span>
               </div>
-              <p className="mt-0.5 font-sans text-[11px] text-[#a3a3a3] leading-snug">
+              <p className="mt-0.5 hidden sm:block font-sans text-[11px] text-[#a3a3a3] leading-snug">
                 {activeTrack.vibe}
               </p>
             </div>
@@ -626,7 +624,7 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between font-mono text-[10px] sm:text-[11px] text-[#737373] pt-2 border-t border-white/[0.08] shrink-0">
+      <div className="hidden sm:flex items-center justify-between font-mono text-[11px] text-[#737373] pt-2 border-t border-white/[0.08] shrink-0">
         <span className="truncate">ESTIRA EL RETRATO O CONTINÚA DESLIZANDO</span>
         <span className="hidden sm:inline">SIGUIENTE CÁMARA: AUTODIAGNÓSTICO →</span>
       </div>

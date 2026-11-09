@@ -122,6 +122,8 @@ export function MarketingWebShowcase() {
       }
 
       if (gridWrapRef.current) {
+        const grid = gridWrapRef.current;
+        grid.toggleAttribute('data-lenis-prevent', grid.scrollHeight > grid.clientHeight + 1);
         const zScale = lerp(0.95, 1, enter) - exit * 0.03;
         const zY = lerp(24, 0, enter) - exit * 18;
         gridWrapRef.current.style.transform = `translate3d(0, ${zY}px, 0) scale(${zScale})`;
@@ -177,13 +179,16 @@ export function MarketingWebShowcase() {
           )}
         </div>
 
-        <div>
+        <div className="flex items-start gap-3">
+          <img src={proj.image} alt={`Ilustración representativa de ${proj.title}`} loading="lazy" decoding="async" className="h-16 w-24 shrink-0 rounded-lg object-cover border border-white/10" />
+          <div>
           <h3 className="font-mono text-sm sm:text-base font-bold text-[#f5f5f5] leading-snug">
             {proj.title}
           </h3>
           <p className="font-mono text-[11px] text-[#06B6D4] mt-0.5">
             {proj.category} · <span className="text-[#a3a3a3]">{proj.role}</span>
           </p>
+          </div>
         </div>
 
         <p className="text-xs text-[#d4d4d4] leading-relaxed">
@@ -239,7 +244,7 @@ export function MarketingWebShowcase() {
     <section
       ref={stageRef}
       aria-labelledby="marketing-web-title"
-      className="fixed inset-0 z-10 flex h-[100svh] w-screen flex-col justify-between overflow-hidden pt-16 pb-4 sm:pb-8 px-3.5 sm:px-6"
+      className="fixed inset-0 z-10 flex h-[100svh] w-screen flex-col justify-between overflow-hidden pt-16 sm:pt-24 pb-4 sm:pb-8 px-3.5 sm:px-6"
       style={{ opacity: 0, visibility: 'hidden', pointerEvents: 'none' }}
     >
       <div className="mx-auto flex h-full w-full max-w-[1280px] flex-col justify-between gap-2">
@@ -303,7 +308,7 @@ export function MarketingWebShowcase() {
         {/* 2. Escenario central: En MÓVIL (<768px) muestra 1 proyecto a la vez gobernado por el scroll; en ESCRITORIO (>=768px) muestra el grid 2x2 */}
         <div
           ref={gridWrapRef}
-          className="relative flex-1 min-h-0 flex flex-col justify-center will-change-transform py-0.5"
+          className="relative flex-1 min-h-0 flex flex-col overflow-y-auto will-change-transform py-0.5"
         >
           {/* Vista MÓVIL: 1 ficha enfocada + selector 01..04 (cero desbordamiento) */}
           <div className="flex flex-col gap-2.5 md:hidden">
@@ -412,6 +417,10 @@ export function MarketingWebShowcase() {
               </button>
             </div>
 
+            <figure>
+              <img src={selectedProject.image} alt={`Ilustración representativa de ${selectedProject.title}`} className="w-full rounded-xl border border-white/10" />
+              <figcaption className="mt-1 text-xs text-[#a3a3a3]">Ilustración del proyecto, no captura de la web.</figcaption>
+            </figure>
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-[#06B6D4]/35 bg-[#06B6D4]/10 px-3 py-1 font-mono text-xs text-[#06B6D4]">
                 <Sparkles className="h-3.5 w-3.5" />

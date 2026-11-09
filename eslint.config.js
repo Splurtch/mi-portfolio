@@ -6,7 +6,8 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // Local references and dossier snapshots are not part of the application.
+  globalIgnores(['dist', '000_refe/**', '0001_Synji/**']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

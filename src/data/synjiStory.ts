@@ -59,6 +59,7 @@ export interface AcademicWork {
 export type WebProjectStage = 'desplegado' | 'en-proceso' | 'en-desarrollo';
 
 export interface MarketingWebProject {
+  image: string;
   id: string;
   title: string;
   stage: WebProjectStage;
@@ -234,7 +235,7 @@ export const ecosystemProjects: EcosystemProject[] = [
     summary: 'Consultoría de gestión y ejecución para empresas de servicios y centros formativos: licitaciones públicas, FUNDAE 360, SEO técnico y mejora de procesos.',
     problemSolved: 'Muchos centros tienen buen equipo docente pero pierden convocatorias o margen por cuellos de botella documentales y falta de captación predecible.',
     deliverable: 'Radar de oportunidades (PLACE/BDNS), analizador de pliegos BidOps v2.1, memorias técnicas y arquitectura operativa.',
-    image: `${import.meta.env.BASE_URL}synji-neon.webp`,
+    image: `${import.meta.env.BASE_URL}projects/digitalsynapse.svg`,
     stack: ['WordPress', 'SEO Técnico', 'BidOps', 'Claude API', 'FUNDAE'],
     link: 'https://digitalsynapse.es/',
   },
@@ -248,7 +249,7 @@ export const ecosystemProjects: EcosystemProject[] = [
     summary: 'Laboratorio privado de investigación visual y biblioteca propia de componentes React, primitivas de motion (@dv/motion), 44 plantillas de página y servidor MCP.',
     problemSolved: 'Dejar de diseñar interfaces a ciegas o repetir plantillas genéricas de IA: cada patrón distingue entre dato MEDIDO, OBSERVADO e INFERIDO.',
     deliverable: 'Servidor MCP con 21 herramientas, base de datos SQLite auditable y 498 piezas verificadas con Playwright y axe.',
-    image: `${import.meta.env.BASE_URL}synji-film.webp`,
+    image: `${import.meta.env.BASE_URL}projects/design-vault.svg`,
     stack: ['React 19', 'TypeScript', 'Playwright', 'Axe a11y', 'MCP Server', 'SQLite'],
   },
   {
@@ -261,7 +262,7 @@ export const ecosystemProjects: EcosystemProject[] = [
     summary: 'Ecosistema para formación para el empleo: portal interactivo con 56 actividades distribuidas en 8 módulos y 46 unidades, más automatización documental para expedientes.',
     problemSolved: 'Pasar de hora y media de gestión manual por lote a 3 minutos, manteniendo siempre la revisión explícita del tutor antes de enviar nada.',
     deliverable: 'Portal web en producción, generador de documentación ODT/PDF/ZIP desde Excel y flujo de tutoría.',
-    image: `${import.meta.env.BASE_URL}synji-cafe.webp`,
+    image: `${import.meta.env.BASE_URL}projects/aula-practica.svg`,
     stack: ['React', 'TypeScript', 'Python', 'Supabase', 'Hostinger'],
     link: 'https://aula-practica.digitalsynapse.es/#/activities',
     github: 'https://github.com/Splurtch',
@@ -276,7 +277,7 @@ export const ecosystemProjects: EcosystemProject[] = [
     summary: 'Sistema multicliente para investigación SEO/GEO, estrategia, calendario, copy y auditoría editorial, donde cada marca mantiene sus fuentes y voz aisladas.',
     problemSolved: 'Evitar que los agentes mezclen contextos de clientes o publiquen textos con olor a plantilla corporativa sin que una persona responsable los valide.',
     deliverable: 'Repositorio con 155 tests automatizados, protocolo de eventos, fichas de revisión y la skill voz-synji v0.2.0.',
-    image: `${import.meta.env.BASE_URL}synji-editorial.webp`,
+    image: `${import.meta.env.BASE_URL}projects/marketing-os.svg`,
     stack: ['Claude Code', 'MCP', 'SEO/GEO', 'Node.js', 'Testing'],
   },
   {
@@ -289,7 +290,7 @@ export const ecosystemProjects: EcosystemProject[] = [
     summary: 'Sistema de detección de ingeniería social en llamadas y mensajes para proteger a personas mayores frente a estafas bancarias y suplantación.',
     problemSolved: 'Aplicar psicología de la coerción y señales de urgencia para alertar a tiempo con decisiones explicables y aviso al contacto de confianza.',
     deliverable: 'Prototipo funcional para All Things Agentic Hackathon con análisis de señales de riesgo en vivo.',
-    image: `${import.meta.env.BASE_URL}synji-perfil.webp`,
+    image: `${import.meta.env.BASE_URL}projects/canary-guardian.svg`,
     stack: ['Google ADK', 'Gemini', 'Psicología Cognitiva', 'Voice AI'],
     link: 'https://allthingsagentichackathon.devpost.com/',
   },
@@ -303,7 +304,7 @@ export const ecosystemProjects: EcosystemProject[] = [
     summary: 'Medio en español nacido de una etapa en Twitch sobre anime, manga, guías de videojuegos (con debilidad por el indie horror y los RPG), hardware y salud mental.',
     problemSolved: 'Hablar de cultura otaku, videojuegos y pantallas desde la experiencia real de jugador y padre, sin sermones ni notas de prensa.',
     deliverable: 'Portal WordPress con tema propio, arquitectura SEO, guiones y sistema de contenidos multicanal.',
-    image: `${import.meta.env.BASE_URL}synji-playa.webp`,
+    image: `${import.meta.env.BASE_URL}projects/ape-s.svg`,
     stack: ['WordPress', 'Technical SEO', 'Content Ops', 'Gaming & Anime'],
     link: 'https://ape-s.com/',
   },
@@ -317,7 +318,7 @@ export const ecosystemProjects: EcosystemProject[] = [
     summary: 'Conjunto de aplicaciones educativas: seguimiento de evolución competencial y sociolaboral (EVOSER), utilidades de aula, gamificación HOTR0046 y tests educativos.',
     problemSolved: 'Hacer visible el progreso real de cada alumno en clase y dar herramientas prácticas para practicar en vez de memorizar diapositivas.',
     deliverable: 'MVPs interactivos, webquests de tutoría, teleprompter docente y juegos de seguridad alimentaria.',
-    image: `${import.meta.env.BASE_URL}synji-calle.webp`,
+    image: `${import.meta.env.BASE_URL}projects/evoser-trackedu.svg`,
     stack: ['React', 'TypeScript', 'Python', 'EdTech', 'Gamificación'],
     link: 'https://mindscape-insight-54.lovable.app',
     github: 'https://github.com/Splurtch?tab=repositories',
@@ -439,6 +440,7 @@ export const marketingWebProjects: MarketingWebProject[] = [
   // 1. DESPLEGADOS Y EN PRODUCCIÓN
   {
     id: 'web-digitalsynapse',
+    image: `${import.meta.env.BASE_URL}projects/web-digitalsynapse.svg`,
     title: 'DigitalSynapse.es',
     stage: 'desplegado',
     stageLabel: 'DESPLEGADO · EN PRODUCCIÓN',
@@ -453,6 +455,7 @@ export const marketingWebProjects: MarketingWebProject[] = [
   },
   {
     id: 'web-talent-bridge',
+    image: `${import.meta.env.BASE_URL}projects/web-talent-bridge.svg`,
     title: 'Talent Bridge',
     stage: 'desplegado',
     stageLabel: 'DESPLEGADO · GROWTH ACTIVO',
@@ -467,6 +470,7 @@ export const marketingWebProjects: MarketingWebProject[] = [
   },
   {
     id: 'web-apes',
+    image: `${import.meta.env.BASE_URL}projects/web-apes.svg`,
     title: 'APE-S · Cultura Geek, Gaming & IA',
     stage: 'desplegado',
     stageLabel: 'DESPLEGADO · MEDIO ACTIVO',
@@ -481,6 +485,7 @@ export const marketingWebProjects: MarketingWebProject[] = [
   },
   {
     id: 'web-nexus-aula',
+    image: `${import.meta.env.BASE_URL}projects/web-nexus-aula.svg`,
     title: 'Nexus Coaching & Aula Práctica DS',
     stage: 'desplegado',
     stageLabel: 'DESPLEGADO · ECOSISTEMA ACTIVO',
@@ -497,6 +502,7 @@ export const marketingWebProjects: MarketingWebProject[] = [
   // 2. EN PROCESO Y PILOTO ACTIVO
   {
     id: 'web-destiny-elisa',
+    image: `${import.meta.env.BASE_URL}projects/web-destiny-elisa.svg`,
     title: 'Destiny by Bergen · Asset Lighthouse · ELISA',
     stage: 'en-proceso',
     stageLabel: 'EN PROCESO · PILOTO & AUDITORÍA',
@@ -510,6 +516,7 @@ export const marketingWebProjects: MarketingWebProject[] = [
   },
   {
     id: 'web-bds',
+    image: `${import.meta.env.BASE_URL}projects/web-bds.svg`,
     title: 'BDS · Proyecto Web & Estrategia SEO',
     stage: 'en-proceso',
     stageLabel: 'EN PROCESO · ARQUITECTURA & SEO',
@@ -523,6 +530,7 @@ export const marketingWebProjects: MarketingWebProject[] = [
   },
   {
     id: 'web-matricula-vida',
+    image: `${import.meta.env.BASE_URL}projects/web-matricula-vida.svg`,
     title: 'Matrícula de Vida & Webs de Especialistas',
     stage: 'en-proceso',
     stageLabel: 'EN PROCESO · DISEÑO & ASISTENTE',
@@ -536,6 +544,7 @@ export const marketingWebProjects: MarketingWebProject[] = [
   },
   {
     id: 'web-apes-v7',
+    image: `${import.meta.env.BASE_URL}projects/web-apes-v7.svg`,
     title: 'APE-S Theme v7.0.1 (Staging Release)',
     stage: 'en-proceso',
     stageLabel: 'EN PROCESO · VALIDADO EN STAGING',
@@ -552,6 +561,7 @@ export const marketingWebProjects: MarketingWebProject[] = [
   // 3. EN DESARROLLO Y LABORATORIO SEO / GEO
   {
     id: 'dev-marketing-os',
+    image: `${import.meta.env.BASE_URL}projects/dev-marketing-os.svg`,
     title: 'Marketing OS Multicliente & Suite SEO/GEO',
     stage: 'en-desarrollo',
     stageLabel: 'EN DESARROLLO · 155 TESTS EN LAB',
@@ -565,6 +575,7 @@ export const marketingWebProjects: MarketingWebProject[] = [
   },
   {
     id: 'dev-neuroaudita',
+    image: `${import.meta.env.BASE_URL}projects/dev-neuroaudita.svg`,
     title: 'NeuroAudita (La Nucía / Benidorm)',
     stage: 'en-desarrollo',
     stageLabel: 'EN DESARROLLO · VIABILIDAD & WEB',
@@ -578,6 +589,7 @@ export const marketingWebProjects: MarketingWebProject[] = [
   },
   {
     id: 'dev-tpv-saas',
+    image: `${import.meta.env.BASE_URL}projects/dev-tpv-saas.svg`,
     title: 'DigitalSynapse SaaS FPE & TPV Restaurante Demo',
     stage: 'en-desarrollo',
     stageLabel: 'EN DESARROLLO · PROTOTIPOS REACT',
@@ -592,6 +604,7 @@ export const marketingWebProjects: MarketingWebProject[] = [
   },
   {
     id: 'dev-linkedin-os',
+    image: `${import.meta.env.BASE_URL}projects/dev-linkedin-os.svg`,
     title: 'LinkedIn OS & Motores Editoriales (Gary-Ops / Patel)',
     stage: 'en-desarrollo',
     stageLabel: 'EN DESARROLLO · MOTOR ORGÁNICO',

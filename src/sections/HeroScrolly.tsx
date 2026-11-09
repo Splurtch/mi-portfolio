@@ -14,13 +14,13 @@ interface DustMote {
 
 const HERO_PORTRAITS = [
   {
-    src: `${import.meta.env.BASE_URL}synji-neon.webp`,
-    tag: 'NEURO · IA · SISTEMAS',
+    src: `${import.meta.env.BASE_URL}portraits/editorial.webp`,
+    tag: 'EDITORIAL · VOZ SYNJI',
     quote: '«Menos pose de consultor y más herramientas que funcionen el lunes a las ocho.»',
   },
   {
-    src: `${import.meta.env.BASE_URL}synji-editorial.webp`,
-    tag: 'EDITORIAL · VOZ SYNJI',
+    src: `${import.meta.env.BASE_URL}synji-hero.webp`,
+    tag: 'SYNJI · SIN FILTROS',
     quote: '«El talento sin sistema es ruido caro. Traducir, construir y auditar.»',
   },
 ];
@@ -397,7 +397,7 @@ export function HeroScrolly({ reducedMotion }: { reducedMotion: boolean }) {
                   {st.label}
                 </span>
               </div>
-              <p className="mt-0.5 text-[10px] sm:text-[11px] text-[#a3a3a3] line-clamp-1">
+              <p className="mt-0.5 hidden sm:block text-[11px] text-[#a3a3a3] line-clamp-1">
                 {st.detail}
               </p>
             </div>

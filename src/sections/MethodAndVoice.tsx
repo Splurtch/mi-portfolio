@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowUpRight,
   BookOpen,
@@ -32,11 +32,11 @@ export function MethodAndVoice() {
   const [mobileAct3Tab, setMobileAct3Tab] = useState<'ciencia' | 'formacion'>('ciencia');
 
   const manualSubActRef = useRef<number>(0);
+  const currentSubActRef = useRef<0 | 1 | 2>(0);
   const manualNoteRef = useRef<number>(0);
   const manualMobileTabRef = useRef<number>(0);
 
   useEffect(() => {
-    let curSub: 0 | 1 | 2 = 0;
     let curMoment = 0;
     let curNote = 0;
     let curAct2Tab: 'voz' | 'newsletter' = 'voz';
@@ -62,27 +62,27 @@ export function MethodAndVoice() {
       const now = Date.now();
       const manualActive = now - manualSubActRef.current < 3200;
 
-      let targetSub: 0 | 1 | 2 = curSub;
+      let targetSub: 0 | 1 | 2 = currentSubActRef.current;
       if (!manualActive) {
         targetSub = p < 0.35 ? 0 : p < 0.68 ? 1 : 2;
-        if (targetSub !== curSub) {
-          curSub = targetSub;
+        if (targetSub !== currentSubActRef.current) {
+          currentSubActRef.current = targetSub;
           setSubAct(targetSub);
         }
       }
 
       const w1 = manualActive
-        ? curSub === 0
+        ? currentSubActRef.current === 0
           ? 1
           : 0
         : 1 - smoothstep(range(p, 0.29, 0.38));
       const w2 = manualActive
-        ? curSub === 1
+        ? currentSubActRef.current === 1
           ? 1
           : 0
         : smoothstep(range(p, 0.31, 0.4)) * (1 - smoothstep(range(p, 0.62, 0.71)));
       const w3 = manualActive
-        ? curSub === 2
+        ? currentSubActRef.current === 2
           ? 1
           : 0
         : smoothstep(range(p, 0.64, 0.74));
@@ -157,10 +157,11 @@ export function MethodAndVoice() {
   const currentNote = synjiVoiceSamples[selectedNoteIdx] || synjiVoiceSamples[0];
   const activeMoment = workMoments[activeMomentIdx] || workMoments[0];
 
-  const handleSelectSubAct = (idx: 0 | 1 | 2) => {
+  const handleSelectSubAct = useCallback((idx: 0 | 1 | 2) => {
     manualSubActRef.current = Date.now();
+    currentSubActRef.current = idx;
     setSubAct(idx);
-  };
+  }, []);
 
   return (
     <section

@@ -51,6 +51,8 @@ export function EcosystemReel() {
         footerRef.current.style.transform = `translate3d(0, ${lerp(28, 0, enter) + exit * 22}px, 0)`;
       }
 
+      // Keep short-screen card scrolling separate from the page timeline.
+      viewport.toggleAttribute('data-lenis-prevent', viewport.scrollHeight > viewport.clientHeight + 1);
       const vpRect = viewport.getBoundingClientRect();
       const k = range(p, 0.05, 0.94);
       const maxTravel = Math.max(0, track.scrollWidth - viewport.clientWidth);
@@ -102,7 +104,7 @@ export function EcosystemReel() {
     <section
       ref={stageRef}
       aria-labelledby="ecosistema-title"
-      className="fixed inset-0 z-10 flex h-[100svh] w-screen flex-col justify-between overflow-hidden pt-16 pb-4 sm:pb-8 px-3.5 sm:px-6"
+      className="fixed inset-0 z-10 flex h-[100svh] w-screen flex-col justify-between overflow-hidden pt-16 sm:pt-24 pb-4 sm:pb-8 px-3.5 sm:px-6"
       style={{ opacity: 0, visibility: 'hidden', pointerEvents: 'none' }}
     >
       <div className="mx-auto flex h-full w-full max-w-[1280px] flex-col justify-between gap-2">
@@ -156,11 +158,11 @@ export function EcosystemReel() {
         {/* 2. Ventana acotada del carrete horizontal: nunca se desborda ni corta textos */}
         <div
           ref={viewportRef}
-          className="relative flex-1 min-h-0 w-full flex items-center overflow-hidden py-1"
+          className="relative flex-1 min-h-0 w-full flex items-start overflow-x-hidden overflow-y-auto py-1"
         >
           <ol
             ref={trackRef}
-            className="flex items-stretch gap-4 sm:gap-5 px-1 sm:px-2 will-change-transform"
+            className="my-auto flex items-stretch gap-4 sm:gap-5 px-1 sm:px-2 will-change-transform"
           >
             {ecosystemProjects.map((entry, i) => {
               const isFocused = i === focusedIdx;
@@ -188,7 +190,7 @@ export function EcosystemReel() {
                             imgRefs.current[i] = el;
                           }}
                           src={entry.image}
-                          alt={entry.title}
+                          alt={`Ilustración representativa de ${entry.title}`}
                           loading="lazy"
                           decoding="async"
                           className="size-full object-cover will-change-transform opacity-85 transition-opacity group-hover:opacity-100"
@@ -211,11 +213,11 @@ export function EcosystemReel() {
 
                       {/* Título y resumen completos sin truncate ni recortes */}
                       <div className="space-y-1.5">
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex flex-wrap items-start justify-between gap-1.5">
                           <h3 className="font-mono text-sm sm:text-base font-bold text-[#f5f5f5] leading-snug">
                             {entry.title}
                           </h3>
-                          <span className="shrink-0 font-mono text-[10px] text-[#8B5CF6] bg-[#8B5CF6]/10 border border-[#8B5CF6]/25 rounded px-1.5 py-0.5">
+                          <span className="font-mono text-[10px] text-[#8B5CF6] bg-[#8B5CF6]/10 border border-[#8B5CF6]/25 rounded px-1.5 py-0.5">
                             {entry.role}
                           </span>
                         </div>
@@ -334,6 +336,10 @@ export function EcosystemReel() {
               </button>
             </div>
 
+            <figure>
+              <img src={inspectedProject.image} alt={`Ilustración representativa de ${inspectedProject.title}`} className="w-full rounded-xl border border-white/10" />
+              <figcaption className="mt-1 text-xs text-[#a3a3a3]">Ilustración del proyecto, no captura de la aplicación.</figcaption>
+            </figure>
             <div className="inline-flex items-center gap-1.5 rounded-full border border-[#10B981]/30 bg-[#10B981]/10 px-3 py-1 font-mono text-xs text-[#10B981]">
               <ShieldCheck className="h-3.5 w-3.5" />
               <span>{inspectedProject.statusTag}</span>

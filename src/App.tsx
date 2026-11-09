@@ -34,7 +34,7 @@ export function App() {
       {/* Lienzo fijo de 1.350 partículas de DigitalSynapse que cambia de forma en cada capítulo */}
       <ParticleField reducedMotion={reducedMotion} />
 
-      {/* Cabecera flotante con progreso y salto directo */}
+      {/* Línea lateral con navegación bajo demanda */}
       <SiteHeader />
 
       {/* Escenarios fijos en el viewport (la página nunca sube como un documento estático) */}

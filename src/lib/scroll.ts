@@ -63,6 +63,21 @@ export function onScroll(fn: ScrollTick): () => void {
   };
 }
 
+/** Pause Lenis while a modal owns input; Radix handles native scroll locking. */
+export function setScrollPaused(paused: boolean) {
+  if (paused) lenis?.stop();
+  else lenis?.start();
+}
+
+export function scrollToPosition(top: number) {
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (lenis) {
+    lenis.scrollTo(top, { duration: 1.2, immediate: reducedMotion });
+  } else {
+    window.scrollTo({ top, behavior: reducedMotion ? 'instant' : 'smooth' });
+  }
+}
+
 export function scrollToHash(hash: string) {
   const target = hash === '#top' ? 0 : document.querySelector<HTMLElement>(hash);
   if (target === null) return;
