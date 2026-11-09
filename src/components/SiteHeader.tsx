@@ -108,10 +108,24 @@ export function SiteHeader() {
           </nav>
 
           {/* Right telemetry + Primary CTA */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            {/* En móvil muestra el capítulo activo para orientar siempre al usuario */}
+            <button
+              type="button"
+              onClick={() => setMobileOpen((v) => !v)}
+              className="lg:hidden inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.05] px-2.5 py-1 font-mono text-[10px] text-[#f5f5f5]"
+            >
+              <span className="text-[#06B6D4] font-bold tabular-nums">
+                {CHAPTERS.find((c) => c.id === activeId)?.num}
+              </span>
+              <span className="max-w-[82px] truncate">
+                {CHAPTERS.find((c) => c.id === activeId)?.label}
+              </span>
+            </button>
+
             <span
               ref={progressTextRef}
-              className="hidden sm:inline-block font-mono text-[11px] text-[#a3a3a3] tabular-nums w-9 text-right"
+              className="inline-block font-mono text-[10px] sm:text-[11px] text-[#a3a3a3] tabular-nums w-8 sm:w-9 text-right"
               aria-hidden="true"
             >
               0%
@@ -131,7 +145,7 @@ export function SiteHeader() {
               onClick={() => setMobileOpen((v) => !v)}
               aria-expanded={mobileOpen}
               aria-label={mobileOpen ? 'Cerrar menú de capítulos' : 'Abrir menú de capítulos'}
-              className="lg:hidden inline-flex items-center justify-center h-9 w-9 rounded-full border border-white/[0.08] bg-[#121212] text-[#f5f5f5]"
+              className="lg:hidden inline-flex items-center justify-center h-8 w-8 rounded-full border border-white/[0.08] bg-[#121212] text-[#f5f5f5]"
             >
               {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>

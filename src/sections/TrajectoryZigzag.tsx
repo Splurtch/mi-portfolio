@@ -44,16 +44,15 @@ export function TrajectoryZigzag({ reducedMotion }: { reducedMotion: boolean }) 
 
       if (!active) return;
 
-      // Animación espacial de entrada y salida de los 3 bloques de la cabina
       if (headerRef.current) {
-        headerRef.current.style.transform = `translate3d(0, ${lerp(-28, 0, enter) - exit * 24}px, 0)`;
+        headerRef.current.style.transform = `translate3d(0, ${lerp(-22, 0, enter) - exit * 18}px, 0)`;
       }
       if (mapWrapRef.current) {
-        const s = lerp(0.88, 1, enter) + exit * 0.08;
+        const s = lerp(0.9, 1, enter) + exit * 0.06;
         mapWrapRef.current.style.transform = `scale(${s.toFixed(3)})`;
       }
       if (consoleRef.current) {
-        consoleRef.current.style.transform = `translate3d(0, ${lerp(36, 0, enter) + exit * 28}px, 0) scale(${lerp(0.95, 1, enter)})`;
+        consoleRef.current.style.transform = `translate3d(0, ${lerp(28, 0, enter) + exit * 20}px, 0) scale(${lerp(0.96, 1, enter)})`;
       }
 
       const u = range(p, WINDOW[0], WINDOW[1]) * LEGS.length;
@@ -93,30 +92,48 @@ export function TrajectoryZigzag({ reducedMotion }: { reducedMotion: boolean }) 
     <section
       ref={stageRef}
       aria-labelledby="zigzag-title"
-      className="fixed inset-0 z-10 flex h-[100svh] w-screen flex-col justify-between overflow-hidden px-4 pt-20 pb-6 sm:px-6 md:px-[5vw] md:pt-24"
+      className="fixed inset-0 z-10 flex h-[100svh] w-screen flex-col justify-between overflow-hidden px-3.5 pt-16 pb-4 sm:px-6 sm:pt-20 sm:pb-6 md:px-[5vw]"
       style={{ opacity: 0, visibility: 'hidden', pointerEvents: 'none' }}
     >
-      {/* Cabecera superior */}
+      {/* Cabecera superior compacta */}
       <div
         ref={headerRef}
-        className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between will-change-transform"
+        className="flex flex-col gap-1.5 sm:gap-2.5 lg:flex-row lg:items-end lg:justify-between shrink-0 will-change-transform"
       >
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           <h2
             id="zigzag-title"
-            className="max-w-[34ch] font-mono text-xl sm:text-3xl lg:text-4xl font-bold text-[#f5f5f5] tracking-tight"
+            className="font-mono text-base sm:text-2xl lg:text-3xl font-bold text-[#f5f5f5] tracking-tight leading-snug"
           >
             No ha sido una línea recta; ha sido un entrenamiento cruzado.
           </h2>
-          <p className="font-mono text-xs text-[#06B6D4] uppercase tracking-wider flex items-center gap-1.5">
-            <Compass className="h-3.5 w-3.5" />
-            <span>CAP. 02 · TRAZADO ORBITAL DE 4 ETAPAS (EL SCROLL TRAZA LA RUTA Y CAMBIA LA FICHA)</span>
+          <p className="font-mono text-[10px] sm:text-xs text-[#06B6D4] uppercase tracking-wider flex items-center gap-1.5">
+            <Compass className="h-3.5 w-3.5 shrink-0" />
+            <span>CAP. 02 · TRAZADO ORBITAL DE 4 ETAPAS (DESLIZA O PULSA CADA TRAMO)</span>
           </p>
         </div>
 
-        <div className="flex items-center gap-4 font-mono text-xs text-[#a3a3a3] uppercase shrink-0">
-          <span>
-            Horas de terreno{' '}
+        <div className="flex flex-wrap items-center justify-between lg:justify-end gap-2 sm:gap-3 font-mono text-xs text-[#a3a3a3] shrink-0">
+          {/* Botonera rápida de tramos (ideal para móvil y escritorio) */}
+          <div className="flex items-center gap-1">
+            {trajectoryStages.map((st, i) => (
+              <button
+                key={st.id}
+                type="button"
+                onClick={() => handleSelectLeg(i)}
+                className={`rounded-full px-2.5 py-0.5 font-mono text-[10px] sm:text-[11px] transition-colors ${
+                  i === leg
+                    ? 'bg-[#06B6D4] text-[#0a0a0a] font-bold'
+                    : 'border border-white/[0.1] bg-[#121212] text-[#a3a3a3] hover:text-[#f5f5f5]'
+                }`}
+              >
+                0{i + 1}
+              </button>
+            ))}
+          </div>
+
+          <span className="uppercase text-[11px] sm:text-xs">
+            Terreno:{' '}
             <span ref={hoursRef} className="text-[#f5f5f5] font-bold tabular-nums">
               0
             </span>{' '}
@@ -125,14 +142,14 @@ export function TrajectoryZigzag({ reducedMotion }: { reducedMotion: boolean }) 
         </div>
       </div>
 
-      {/* Mapa SVG central */}
+      {/* Mapa SVG central (altura flexible controlada para no empujar la tarjeta en móvil) */}
       <div
         ref={mapWrapRef}
-        className="relative flex min-h-0 flex-1 items-center my-2 will-change-transform"
+        className="relative flex min-h-0 flex-1 items-center justify-center my-1 will-change-transform max-h-[24svh] sm:max-h-[34svh] lg:max-h-none"
       >
         <svg
           viewBox="0 0 1200 460"
-          className="h-auto max-h-full w-full"
+          className="h-full max-h-full w-full"
           role="img"
           aria-label="Trayectoria en cuatro etapas desde Neurociencias hasta DigitalSynapse e IA."
         >
@@ -155,7 +172,7 @@ export function TrajectoryZigzag({ reducedMotion }: { reducedMotion: boolean }) 
           </defs>
 
           <g fill="#f5f5f5">
-            {Array.from({ length: 56 }, (_, i) => (
+            {Array.from({ length: 48 }, (_, i) => (
               <circle
                 key={i}
                 cx={(i * 179) % 1200}
@@ -188,7 +205,7 @@ export function TrajectoryZigzag({ reducedMotion }: { reducedMotion: boolean }) 
             height={ORIGIN_NODE.r * 2}
             clipPath="url(#origin-clip)"
             preserveAspectRatio="xMidYMid slice"
-            opacity="0.78"
+            opacity="0.82"
           />
 
           <circle cx="430" cy="245" r="10" fill="#121212" stroke="#8B5CF6" strokeWidth="2.5" />
@@ -212,14 +229,14 @@ export function TrajectoryZigzag({ reducedMotion }: { reducedMotion: boolean }) 
             strokeWidth="2.5"
           />
           <image
-            href={`${import.meta.env.BASE_URL}synji-hero.webp`}
+            href={`${import.meta.env.BASE_URL}synji-neon.webp`}
             x={DEST_NODE.cx - DEST_NODE.r}
             y={DEST_NODE.cy - DEST_NODE.r}
             width={DEST_NODE.r * 2}
             height={DEST_NODE.r * 2}
             clipPath="url(#dest-clip)"
             preserveAspectRatio="xMidYMid slice"
-            opacity="0.88"
+            opacity="0.92"
           />
 
           {LEGS.map((d, i) => (
@@ -258,7 +275,7 @@ export function TrajectoryZigzag({ reducedMotion }: { reducedMotion: boolean }) 
             <circle r="5.5" fill="#f5f5f5" />
           </g>
 
-          <g fontFamily="JetBrains Mono, monospace" fontSize="11" letterSpacing="1.5" fill="#a3a3a3">
+          <g fontFamily="JetBrains Mono, monospace" fontSize="12" letterSpacing="1.4" fill="#a3a3a3">
             <text x={ORIGIN_NODE.cx} y={ORIGIN_NODE.cy + ORIGIN_NODE.r + 36} textAnchor="middle">
               2011 · NEUROCIENCIA & P300
             </text>
@@ -275,45 +292,48 @@ export function TrajectoryZigzag({ reducedMotion }: { reducedMotion: boolean }) 
         </svg>
       </div>
 
-      {/* Consola inferior del tramo activo */}
+      {/* Consola inferior del tramo activo (ajustada para móvil y escritorio sin desbordar) */}
       <div
         ref={consoleRef}
-        className="rounded-2xl border border-white/[0.08] bg-[#121212]/90 backdrop-blur-md p-4 sm:p-6 will-change-transform"
+        className="rounded-2xl border border-white/[0.08] bg-[#121212]/92 backdrop-blur-md p-3.5 sm:p-5 shrink-0 will-change-transform"
       >
-        <div className="grid gap-4 lg:grid-cols-12 lg:items-center">
-          <div className="lg:col-span-7 space-y-2">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="font-mono text-base sm:text-xl font-bold text-[#f5f5f5]">
-                {currentStage.title}
-              </h3>
-              <span className="rounded-full border border-[#06B6D4]/30 bg-[#06B6D4]/10 px-3 py-0.5 font-mono text-[11px] text-[#06B6D4] tabular-nums">
+        <div className="grid gap-3 lg:grid-cols-12 lg:items-center">
+          <div className="lg:col-span-7 space-y-1.5">
+            <div className="flex flex-wrap items-center justify-between gap-1.5">
+              <span className="font-mono text-[10px] sm:text-xs font-bold text-[#06B6D4] uppercase">
+                {currentStage.phase}
+              </span>
+              <span className="rounded-full border border-[#06B6D4]/30 bg-[#06B6D4]/10 px-2.5 py-0.5 font-mono text-[10px] text-[#06B6D4] tabular-nums">
                 {currentStage.period} · TRAMO {leg + 1}/{trajectoryStages.length}
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-[#a3a3a3] leading-relaxed">
+            <h3 className="font-mono text-sm sm:text-lg font-bold text-[#f5f5f5] leading-snug">
+              {currentStage.title}
+            </h3>
+            <p className="text-xs text-[#d4d4d4] leading-relaxed">
               {currentStage.body}
             </p>
           </div>
 
-          <div className="lg:col-span-5 flex flex-col justify-between gap-3 border-t lg:border-t-0 lg:border-l border-white/[0.08] pt-3 lg:pt-0 lg:pl-5">
+          <div className="lg:col-span-5 flex flex-col justify-between gap-2 border-t lg:border-t-0 lg:border-l border-white/[0.08] pt-2.5 lg:pt-0 lg:pl-5">
             <div className="space-y-1.5">
               {currentStage.highlights.map((h) => (
                 <div
                   key={h.label}
-                  className="flex items-start justify-between gap-2 rounded-lg bg-[#0a0a0a]/80 px-3 py-1.5 text-xs"
+                  className="flex items-center justify-between gap-2 rounded-lg bg-[#0a0a0a]/85 px-2.5 py-1.5 text-[11px] sm:text-xs"
                 >
-                  <span className="flex items-center gap-1.5 font-mono text-[#f5f5f5] truncate">
+                  <span className="flex items-center gap-1.5 font-mono text-[#f5f5f5] min-w-0">
                     <CheckCircle2 className="h-3.5 w-3.5 text-[#06B6D4] shrink-0" />
-                    <span className="truncate">{h.label}</span>
+                    <span className="leading-tight">{h.label}</span>
                   </span>
                   {h.link && (
                     <a
                       href={h.link}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-0.5 font-mono text-[11px] text-[#06B6D4] hover:underline shrink-0"
+                      className="inline-flex items-center gap-0.5 font-mono text-[10px] sm:text-[11px] text-[#06B6D4] hover:underline shrink-0"
                     >
-                      <span>Evidencia</span>
+                      <span>Ver</span>
                       <ArrowUpRight className="h-3 w-3" />
                     </a>
                   )}
@@ -321,11 +341,11 @@ export function TrajectoryZigzag({ reducedMotion }: { reducedMotion: boolean }) 
               ))}
             </div>
 
-            <div className="flex items-center justify-between gap-2 pt-1">
-              <span className="font-mono text-[10px] text-[#737373] uppercase">
+            <div className="flex items-center justify-between gap-2 pt-0.5">
+              <span className="font-mono text-[9px] sm:text-[10px] text-[#737373] uppercase truncate">
                 {currentStage.evidenceTag}
               </span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 shrink-0">
                 {trajectoryStages.map((st, i) => (
                   <button
                     key={st.id}
@@ -334,10 +354,10 @@ export function TrajectoryZigzag({ reducedMotion }: { reducedMotion: boolean }) 
                     aria-label={`Ver etapa ${i + 1}: ${st.phase}`}
                     className={`h-2 rounded-full transition-all duration-300 ${
                       i === leg
-                        ? 'w-8 bg-[#06B6D4]'
+                        ? 'w-7 bg-[#06B6D4]'
                         : i < leg
-                          ? 'w-4 bg-[#3B82F6]/60'
-                          : 'w-4 bg-white/15 hover:bg-white/30'
+                          ? 'w-3.5 bg-[#3B82F6]/60'
+                          : 'w-3.5 bg-white/15 hover:bg-white/30'
                     }`}
                   />
                 ))}

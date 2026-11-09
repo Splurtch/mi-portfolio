@@ -102,25 +102,25 @@ export function EcosystemReel() {
     <section
       ref={stageRef}
       aria-labelledby="ecosistema-title"
-      className="fixed inset-0 z-10 flex h-[100svh] w-screen flex-col justify-between overflow-hidden pt-16 pb-9 px-4 sm:px-6"
+      className="fixed inset-0 z-10 flex h-[100svh] w-screen flex-col justify-between overflow-hidden pt-16 pb-4 sm:pb-8 px-3.5 sm:px-6"
       style={{ opacity: 0, visibility: 'hidden', pointerEvents: 'none' }}
     >
-      <div className="mx-auto flex h-full w-full max-w-[1280px] flex-col justify-between gap-2.5">
+      <div className="mx-auto flex h-full w-full max-w-[1280px] flex-col justify-between gap-2">
         {/* 1. Cabecera compacta dentro del presupuesto de altura */}
         <div
           ref={headerRef}
-          className="flex flex-col lg:flex-row lg:items-end justify-between gap-2 border-b border-white/[0.08] pb-2.5 shrink-0 will-change-transform"
+          className="flex flex-col lg:flex-row lg:items-end justify-between gap-1.5 sm:gap-2 border-b border-white/[0.08] pb-2 shrink-0 will-change-transform"
         >
-          <div className="space-y-1">
+          <div className="space-y-0.5 sm:space-y-1">
             <h2
               id="ecosistema-title"
-              className="font-mono text-lg sm:text-2xl lg:text-[26px] font-bold text-[#f5f5f5] tracking-tight leading-tight"
+              className="font-mono text-base sm:text-2xl lg:text-[26px] font-bold text-[#f5f5f5] tracking-tight leading-snug"
             >
               Si digo que hago algo, tiene que existir la herramienta funcionando.
             </h2>
-            <p className="font-mono text-[11px] text-[#06B6D4] uppercase tracking-wider flex flex-wrap items-center gap-2">
+            <p className="font-mono text-[10px] sm:text-[11px] text-[#06B6D4] uppercase tracking-wider flex flex-wrap items-center gap-1.5">
               <FolderGit2 className="h-3.5 w-3.5 shrink-0" />
-              <span>CAP. 03 · ECOSISTEMA DE SISTEMAS Y REPOSITORIOS (@SPLURTCH · 19 REPOS PÚBLICOS)</span>
+              <span>CAP. 03 · ECOSISTEMA DE SISTEMAS Y REPOSITORIOS (@SPLURTCH · 19 REPOS)</span>
             </p>
           </div>
 
@@ -261,20 +261,20 @@ export function EcosystemReel() {
           </ol>
         </div>
 
-        {/* 3. Barra inferior de telemetría del proyecto en foco */}
+        {/* 3. Barra inferior de telemetría del proyecto en foco (en móvil se compacta en 1 línea) */}
         <div
           ref={footerRef}
-          className="rounded-xl border border-white/[0.08] bg-[#121212]/90 backdrop-blur-md px-3.5 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0 will-change-transform"
+          className="rounded-xl border border-white/[0.08] bg-[#121212]/90 backdrop-blur-md px-3 py-2 sm:px-3.5 sm:py-2.5 flex items-center justify-between gap-2 shrink-0 will-change-transform"
         >
-          <div className="flex flex-wrap items-center gap-2 text-xs min-w-0">
+          <div className="flex items-center gap-2 text-xs min-w-0">
             <span className="font-mono text-[10px] uppercase tracking-wider text-[#06B6D4] bg-[#06B6D4]/10 border border-[#06B6D4]/25 rounded px-2 py-0.5 shrink-0">
-              EN FOCO · 0{focusedIdx + 1}
+              0{focusedIdx + 1}/0{ecosystemProjects.length}
             </span>
-            <span className="font-mono font-bold text-[#f5f5f5] shrink-0">
-              {activeEntry.title}:
+            <span className="font-mono font-bold text-[#f5f5f5] truncate">
+              {activeEntry.title}
             </span>
-            <span className="text-[#a3a3a3] text-xs">
-              {activeEntry.problemSolved}
+            <span className="hidden md:inline text-[#a3a3a3] text-xs truncate">
+              — {activeEntry.problemSolved}
             </span>
           </div>
 
@@ -282,18 +282,18 @@ export function EcosystemReel() {
             <button
               type="button"
               onClick={() => setInspectedProject(activeEntry)}
-              className="rounded-full border border-[#06B6D4]/40 bg-[#06B6D4]/10 px-3 py-1 font-mono text-[11px] text-[#06B6D4] hover:bg-[#06B6D4]/20 transition-colors"
+              className="rounded-full border border-[#06B6D4]/40 bg-[#06B6D4]/10 px-2.5 py-1 font-mono text-[10px] sm:text-[11px] text-[#06B6D4] hover:bg-[#06B6D4]/20 transition-colors"
             >
-              Inspeccionar arquitectura →
+              Arquitectura →
             </button>
             {activeEntry.link && (
               <a
                 href={activeEntry.link}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 rounded-full bg-[#f5f5f5] px-3 py-1 font-mono text-[11px] font-medium text-[#0a0a0a] hover:bg-white"
+                className="inline-flex items-center gap-1 rounded-full bg-[#f5f5f5] px-2.5 py-1 font-mono text-[10px] sm:text-[11px] font-medium text-[#0a0a0a] hover:bg-white"
               >
-                <span>Abrir demo</span>
+                <span>Demo</span>
                 <ArrowUpRight className="h-3 w-3" />
               </a>
             )}

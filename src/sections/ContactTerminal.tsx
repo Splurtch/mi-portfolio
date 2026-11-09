@@ -15,7 +15,7 @@ import { onFrame } from '@/lib/scroll';
 import { clamp, lerp, range, sceneProgress } from '@/lib/math';
 import { heroProfile } from '@/data/synjiStory';
 
-interface BottleneckOption {
+interface DiagnosticBottleneck {
   id: string;
   title: string;
   symptom: string;
@@ -23,33 +23,33 @@ interface BottleneckOption {
   systemMatch: string;
 }
 
-const BOTTLENECKS: BottleneckOption[] = [
+const BOTTLENECKS: DiagnosticBottleneck[] = [
   {
-    id: 'procesos-ia',
-    title: 'Tenemos herramientas e IA sueltas, pero ningún sistema operativo claro',
+    id: 'licitaciones-fpe',
+    title: 'Formación FPE, FUNDAE o Licitaciones con demasiada carga manual',
     symptom:
-      'Cada persona usa prompts distintos, se pierde información entre hojas de cálculo y nadie sabe qué ocurrió de verdad.',
+      'Se os va la vida rellenando anexos, hojas de firma, memorias técnicas o controlando expedientes en Excel.',
     prescription:
-      'Diseñar un flujo con agentes, MCP o automatización conectada a vuestros datos reales, con trazabilidad y entregables medibles.',
-    systemMatch: 'Arquitectura DigitalSynapse / BidOps / Marketing OS',
+      'Auditoría operativa del flujo documental + automatización supervisada (estilo SynapseFlow / BidOps) y portal de aula.',
+    systemMatch: 'DigitalSynapse · BidOps & SynapseFlow',
   },
   {
-    id: 'formacion-fpe',
-    title: 'Necesitamos que una formación o coordinación docente funcione de verdad',
+    id: 'ia-equipos',
+    title: 'Queremos integrar IA o Agentes sin perder el control ni tragar humo',
     symptom:
-      'Mucho temario en papel, pero cuesta que el alumnado practique con feedback estructurado o que la gestión documental no ahogue al equipo.',
+      'El equipo usa ChatGPT/Claude a tientas o tenéis automatizaciones donde nadie sabe qué ha hecho realmente el agente.',
     prescription:
-      'Convertir programación, rúbricas y casos prácticos en herramientas vivas (como Aula de Práctica SSCE0110 o SynapseFlow).',
-    systemMatch: 'EdTech & Coordinación FPE (+10 años en aula)',
+      'Formación práctica In-Company sobre vuestras tareas reales + diseño de skills/agentes con puntos de control humano.',
+    systemMatch: 'Arquitectura 30D™ · Formación & Auditoría IA',
   },
   {
-    id: 'producto-narrativa',
-    title: 'Queremos lanzar un producto o web con criterio técnico y voz propia',
+    id: 'growth-web',
+    title: 'Necesitamos una web, sistema SEO/GEO o producto digital con criterio',
     symptom:
-      'La web actual parece una plantilla genérica y no explica ni el valor técnico ni quién hay detrás.',
+      'La web actual parece una plantilla genérica, no convierte visitas en oportunidades o la voz de marca suena a robot.',
     prescription:
-      'Construir una arquitectura front-end medida (apoyada en DESIGN VAULT e Impeccable) con narrativa clara y conversión directa.',
-    systemMatch: 'DESIGN VAULT + Desarrollo Front-End & Narrativa',
+      'Diseño y desarrollo respaldado por Design Vault + arquitectura SEO/GEO y sistema editorial con voz propia.',
+    systemMatch: 'Marketing OS · Design Vault & Growth',
   },
 ];
 
@@ -60,16 +60,19 @@ export function ContactTerminal() {
   const rightColRef = useRef<HTMLDivElement | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
 
-  const [selectedIdx, setSelectedIdx] = useState<number>(0);
+  const [selectedIdx, setSelectedIdx] = useState(0);
   const [senderName, setSenderName] = useState('');
   const [senderEmail, setSenderEmail] = useState('');
   const [projectNotes, setProjectNotes] = useState('');
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [mobileStep, setMobileStep] = useState<'diagnostico' | 'contacto'>('diagnostico');
 
   const manualSelectRef = useRef<number>(0);
+  const manualMobileStepRef = useRef<number>(0);
 
   useEffect(() => {
     let lastIdx = 0;
+    let lastMobileStep: 'diagnostico' | 'contacto' = 'diagnostico';
 
     return onFrame(() => {
       const anchor = document.getElementById('hablemos');
@@ -85,26 +88,32 @@ export function ContactTerminal() {
       if (!active) return;
 
       if (headerRef.current) {
-        headerRef.current.style.transform = `translate3d(0, ${lerp(-28, 0, enter)}px, 0)`;
+        headerRef.current.style.transform = `translate3d(0, ${lerp(-20, 0, enter)}px, 0)`;
       }
       if (leftColRef.current) {
-        leftColRef.current.style.transform = `translate3d(${lerp(-44, 0, enter)}px, 0, 0) scale(${lerp(0.92, 1, enter)})`;
+        leftColRef.current.style.transform = `translate3d(${lerp(-32, 0, enter)}px, 0, 0) scale(${lerp(0.94, 1, enter)})`;
       }
       if (rightColRef.current) {
-        rightColRef.current.style.transform = `translate3d(${lerp(44, 0, enter)}px, 0, 0) scale(${lerp(0.92, 1, enter)})`;
+        rightColRef.current.style.transform = `translate3d(${lerp(32, 0, enter)}px, 0, 0) scale(${lerp(0.94, 1, enter)})`;
       }
       if (footerRef.current) {
-        footerRef.current.style.transform = `translate3d(0, ${lerp(24, 0, enter)}px, 0)`;
+        footerRef.current.style.transform = `translate3d(0, ${lerp(20, 0, enter)}px, 0)`;
       }
 
-      // Durante el tramo final de scroll, las 3 opciones de diagnóstico se iluminan en secuencia
-      if (Date.now() - manualSelectRef.current > 3200) {
-        const u = range(p, 0.1, 0.85) * BOTTLENECKS.length;
-        const idx = clamp(Math.floor(u), 0, BOTTLENECKS.length - 1);
-        if (idx !== lastIdx) {
-          lastIdx = idx;
-          setSelectedIdx(idx);
+      const now = Date.now();
+      if (now - manualMobileStepRef.current > 3500) {
+        const nextStep = p < 0.52 ? 'diagnostico' : 'contacto';
+        if (nextStep !== lastMobileStep) {
+          lastMobileStep = nextStep;
+          setMobileStep(nextStep);
         }
+      }
+
+      const u = range(p, 0.08, 0.72) * BOTTLENECKS.length;
+      const idx = clamp(Math.floor(u), 0, BOTTLENECKS.length - 1);
+      if (now - manualSelectRef.current > 3500 && idx !== lastIdx) {
+        lastIdx = idx;
+        setSelectedIdx(idx);
       }
     });
   }, []);
@@ -135,39 +144,78 @@ export function ContactTerminal() {
   return (
     <section
       ref={stageRef}
-      aria-label="Capítulo 6: Canal Abierto y Autodiagnóstico"
-      className="fixed inset-0 z-10 flex h-[100svh] w-screen flex-col justify-between overflow-hidden px-4 pt-20 pb-5 sm:px-6 md:px-[5vw] md:pt-24"
+      aria-label="Capítulo 7: Canal Abierto y Autodiagnóstico"
+      className="fixed inset-0 z-10 flex h-[100svh] w-screen flex-col justify-between overflow-hidden px-3.5 pt-16 pb-4 sm:px-6 sm:pt-20 sm:pb-5 md:px-[5vw]"
       style={{ opacity: 0, visibility: 'hidden', pointerEvents: 'none' }}
     >
       {/* Cabecera superior */}
       <div
         ref={headerRef}
-        className="flex flex-col lg:flex-row lg:items-end justify-between gap-2 pb-3 border-b border-white/[0.08] will-change-transform"
+        className="flex flex-col lg:flex-row lg:items-end justify-between gap-2 pb-2 border-b border-white/[0.08] shrink-0 will-change-transform"
       >
-        <div className="space-y-1">
-          <h2 className="font-mono text-xl sm:text-3xl font-bold text-[#f5f5f5] tracking-tight">
+        <div className="space-y-0.5 sm:space-y-1">
+          <h2 className="font-mono text-base sm:text-2xl lg:text-3xl font-bold text-[#f5f5f5] tracking-tight leading-snug">
             Si tienes un cuello de botella real, lo aterrizamos sin teatro.
           </h2>
-          <p className="font-mono text-xs text-[#06B6D4] uppercase tracking-wider flex items-center gap-1.5">
-            <Terminal className="h-3.5 w-3.5" />
+          <p className="font-mono text-[10px] sm:text-xs text-[#06B6D4] uppercase tracking-wider flex items-center gap-1.5">
+            <Terminal className="h-3.5 w-3.5 shrink-0" />
             <span>CAP. 07 · AUTODIAGNÓSTICO INTERACTIVO Y CANAL DIRECTO EN LA NUCÍA, ALICANTE</span>
           </p>
         </div>
 
-        <span className="font-mono text-xs text-[#10B981] shrink-0">
-          ● RESPUESTA DIRECTA SIN INTERMEDIARIOS
-        </span>
+        {/* Conmutador móvil Paso 1 / Paso 2 */}
+        <div className="flex items-center justify-between lg:justify-end gap-2">
+          <div className="flex items-center gap-1.5 lg:hidden">
+            <button
+              type="button"
+              onClick={() => {
+                manualMobileStepRef.current = Date.now();
+                setMobileStep('diagnostico');
+              }}
+              className={`rounded-full px-3 py-1 font-mono text-[10px] transition-colors ${
+                mobileStep === 'diagnostico'
+                  ? 'bg-[#06B6D4] text-[#0a0a0a] font-bold'
+                  : 'border border-white/[0.1] bg-[#121212] text-[#a3a3a3]'
+              }`}
+            >
+              1 · Diagnóstico
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                manualMobileStepRef.current = Date.now();
+                setMobileStep('contacto');
+              }}
+              className={`rounded-full px-3 py-1 font-mono text-[10px] transition-colors ${
+                mobileStep === 'contacto'
+                  ? 'bg-[#06B6D4] text-[#0a0a0a] font-bold'
+                  : 'border border-white/[0.1] bg-[#121212] text-[#a3a3a3]'
+              }`}
+            >
+              2 · Canal Directo
+            </button>
+          </div>
+
+          <span className="hidden sm:inline font-mono text-xs text-[#10B981] shrink-0">
+            ● RESPUESTA DIRECTA SIN INTERMEDIARIOS
+          </span>
+        </div>
       </div>
 
-      {/* Consola central: Diagnóstico + Formulario directo */}
-      <div className="my-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+      {/* Consola central: en móvil muestra Paso 1 o Paso 2 sin desbordar nunca */}
+      <div className="my-auto grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center min-h-0">
         {/* Columna izquierda: Selector de cuello de botella (7 cols) */}
-        <div ref={leftColRef} className="lg:col-span-7 space-y-3 will-change-transform">
-          <h3 className="font-mono text-sm sm:text-base font-bold text-[#f5f5f5]">
+        <div
+          ref={leftColRef}
+          className={`lg:col-span-7 space-y-2.5 will-change-transform ${
+            mobileStep === 'diagnostico' ? 'block' : 'hidden lg:block'
+          }`}
+        >
+          <h3 className="font-mono text-xs sm:text-base font-bold text-[#f5f5f5]">
             1. ¿Dónde te duele el sistema ahora mismo?
           </h3>
 
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {BOTTLENECKS.map((option, idx) => {
               const active = idx === selectedIdx;
               return (
@@ -178,14 +226,14 @@ export function ContactTerminal() {
                     manualSelectRef.current = Date.now();
                     setSelectedIdx(idx);
                   }}
-                  className={`w-full text-left rounded-xl border p-3.5 sm:p-4 transition-all duration-300 ${
+                  className={`w-full text-left rounded-xl border p-3 sm:p-3.5 transition-all duration-300 ${
                     active
-                      ? 'border-[#06B6D4]/60 bg-[#181818]/95 scale-[1.01]'
+                      ? 'border-[#06B6D4]/60 bg-[#181818]/95'
                       : 'border-white/[0.08] bg-[#121212]/85 hover:border-white/[0.18]'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <h4 className="font-mono text-xs sm:text-sm font-bold text-[#f5f5f5]">
+                  <div className="flex items-start justify-between gap-2.5">
+                    <h4 className="font-mono text-xs sm:text-sm font-bold text-[#f5f5f5] leading-snug">
                       {option.title}
                     </h4>
                     <CheckCircle2
@@ -194,7 +242,7 @@ export function ContactTerminal() {
                       }`}
                     />
                   </div>
-                  <p className="mt-1 text-xs text-[#a3a3a3] leading-relaxed">
+                  <p className="mt-1 text-[11px] sm:text-xs text-[#a3a3a3] leading-relaxed">
                     {option.symptom}
                   </p>
                 </button>
@@ -202,39 +250,51 @@ export function ContactTerminal() {
             })}
           </div>
 
-          <div className="rounded-2xl border border-white/[0.08] bg-[#121212]/90 backdrop-blur-md p-4 space-y-2">
+          <div className="rounded-2xl border border-white/[0.08] bg-[#121212]/92 backdrop-blur-md p-3.5 space-y-1.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h4 className="font-mono text-xs font-bold text-[#06B6D4]">
-                DIAGNÓSTICO PRELIMINAR DE INTERVENCIÓN
+              <h4 className="font-mono text-[11px] sm:text-xs font-bold text-[#06B6D4]">
+                DIAGNÓSTICO PRELIMINAR
               </h4>
-              <span className="font-mono text-[11px] text-[#a3a3a3]">
+              <span className="font-mono text-[10px] sm:text-[11px] text-[#a3a3a3]">
                 {selectedBottleneck.systemMatch}
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-[#f5f5f5] leading-relaxed">
+            <p className="text-xs text-[#f5f5f5] leading-relaxed">
               {selectedBottleneck.prescription}
             </p>
+            <button
+              type="button"
+              onClick={() => {
+                manualMobileStepRef.current = Date.now();
+                setMobileStep('contacto');
+              }}
+              className="mt-1.5 inline-flex items-center gap-1 font-mono text-[11px] text-[#06B6D4] lg:hidden"
+            >
+              <span>Continuar al Paso 2 (Enviar mensaje) →</span>
+            </button>
           </div>
         </div>
 
         {/* Columna derecha: Formulario y canales directos (5 cols) */}
         <div
           ref={rightColRef}
-          className="lg:col-span-5 rounded-2xl border border-white/[0.08] bg-[#121212]/90 backdrop-blur-md p-5 space-y-4 will-change-transform"
+          className={`lg:col-span-5 rounded-2xl border border-white/[0.08] bg-[#121212]/92 backdrop-blur-md p-4 sm:p-5 space-y-3.5 will-change-transform ${
+            mobileStep === 'contacto' ? 'block' : 'hidden lg:block'
+          }`}
         >
-          <h3 className="font-mono text-sm sm:text-base font-bold text-[#f5f5f5]">
+          <h3 className="font-mono text-xs sm:text-base font-bold text-[#f5f5f5]">
             2. Envía el contexto o abre canal directo
           </h3>
 
-          <form onSubmit={handleOpenMailClient} className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <form onSubmit={handleOpenMailClient} className="space-y-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input
                 type="text"
                 value={senderName}
                 onChange={(e) => setSenderName(e.target.value)}
                 placeholder="Tu nombre o equipo"
                 aria-label="Tu nombre o equipo"
-                className="w-full rounded-xl border border-white/[0.08] bg-[#0a0a0a] px-3 py-2 text-xs sm:text-sm text-[#f5f5f5] placeholder:text-[#737373] focus:border-[#06B6D4] focus:outline-none"
+                className="w-full rounded-xl border border-white/[0.08] bg-[#0a0a0a] px-3 py-2 text-xs text-[#f5f5f5] placeholder:text-[#737373] focus:border-[#06B6D4] focus:outline-none"
               />
               <input
                 type="email"
@@ -242,7 +302,7 @@ export function ContactTerminal() {
                 onChange={(e) => setSenderEmail(e.target.value)}
                 placeholder="tu@empresa.com"
                 aria-label="Tu correo de respuesta"
-                className="w-full rounded-xl border border-white/[0.08] bg-[#0a0a0a] px-3 py-2 text-xs sm:text-sm text-[#f5f5f5] placeholder:text-[#737373] focus:border-[#06B6D4] focus:outline-none"
+                className="w-full rounded-xl border border-white/[0.08] bg-[#0a0a0a] px-3 py-2 text-xs text-[#f5f5f5] placeholder:text-[#737373] focus:border-[#06B6D4] focus:outline-none"
               />
             </div>
 
@@ -252,19 +312,19 @@ export function ContactTerminal() {
               onChange={(e) => setProjectNotes(e.target.value)}
               placeholder="Cuéntame en dos líneas qué quieres desbloquear..."
               aria-label="Qué quieres desbloquear"
-              className="w-full rounded-xl border border-white/[0.08] bg-[#0a0a0a] px-3 py-2 text-xs sm:text-sm text-[#f5f5f5] placeholder:text-[#737373] focus:border-[#06B6D4] focus:outline-none resize-none"
+              className="w-full rounded-xl border border-white/[0.08] bg-[#0a0a0a] px-3 py-2 text-xs text-[#f5f5f5] placeholder:text-[#737373] focus:border-[#06B6D4] focus:outline-none resize-none"
             />
 
             <button
               type="submit"
-              className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-[#f5f5f5] px-4 py-2.5 font-mono text-xs font-medium text-[#0a0a0a] transition-transform hover:bg-white active:scale-[0.99]"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-[#f5f5f5] px-4 py-2 font-mono text-xs font-medium text-[#0a0a0a] transition-transform hover:bg-white active:scale-[0.99]"
             >
               <Send className="h-3.5 w-3.5" />
               <span>Preparar correo con este diagnóstico</span>
             </button>
           </form>
 
-          <div className="pt-3 border-t border-white/[0.08] space-y-2 font-mono text-xs">
+          <div className="pt-2.5 border-t border-white/[0.08] space-y-2 font-mono text-xs">
             <div className="flex items-center justify-between gap-2">
               <a
                 href={`mailto:${heroProfile.contacts.email}`}
@@ -341,17 +401,17 @@ export function ContactTerminal() {
       {/* Footer integrado dentro del escenario fijo */}
       <footer
         ref={footerRef}
-        className="pt-3 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-2 font-mono text-[11px] text-[#737373] will-change-transform"
+        className="pt-2 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-1.5 font-mono text-[10px] sm:text-[11px] text-[#737373] shrink-0 will-change-transform"
       >
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <img
             src={`${import.meta.env.BASE_URL}brand/digitalsynapse_logo_dark.svg`}
             alt="DigitalSynapse"
-            className="h-5 w-auto opacity-90"
+            className="h-4 sm:h-5 w-auto opacity-90"
           />
-          <span>· Diseñado y programado por Synji D. Mulatiere (@splurtch)</span>
+          <span className="truncate">· Synji D. Mulatiere (@splurtch)</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-3">
           <span>Ctrl + Alt + Pensar</span>
           <span>·</span>
           <span className="tabular-nums">{new Date().getFullYear()}</span>
