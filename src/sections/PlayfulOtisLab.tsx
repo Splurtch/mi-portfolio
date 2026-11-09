@@ -10,6 +10,7 @@ import {
   Tv,
 } from 'lucide-react';
 import { onFrame } from '@/lib/scroll';
+import { ElasticPortrait } from '@/components/ElasticPortrait';
 import { clamp, lerp, range, sceneProgress } from '@/lib/math';
 import {
   personalFacets,
@@ -20,21 +21,16 @@ import {
 interface PortraitPreset {
   id: string;
   label: string;
-  src: string;
-  frame?: number;
   caption: string;
   mood: string;
-  warpX: number;
-  warpY: number;
 }
 
 const PORTRAIT_PRESETS: PortraitPreset[] = [
-  { id: 'picaro', label: 'Pícaro', src: `${import.meta.env.BASE_URL}portraits/picaro.webp`, caption: 'Arrastra la frente o las mejillas. También puedes elegir un gesto.', mood: 'PÍCARO · EN REPOSO', warpX: 0, warpY: 0 },
-  { id: 'sorpresa', label: 'Sorpresa', src: `${import.meta.env.BASE_URL}portraits/expressions.webp`, frame: 1, caption: 'Esa idea acaba de desbloquear algo.', mood: 'SORPRESA · +1 IDEA', warpX: 0, warpY: -0.06 },
-  { id: 'mejillas', label: 'Mejillas', src: `${import.meta.env.BASE_URL}portraits/expressions.webp`, frame: 2, caption: 'Un poco de presión. Todavía queda paciencia.', mood: 'PACIENCIA · COMPRIMIDA', warpX: 0.07, warpY: 0.02 },
-  { id: 'guino', label: 'Guiño', src: `${import.meta.env.BASE_URL}portraits/expressions.webp`, frame: 3, caption: 'No todo va a ser ponerse serio.', mood: 'COMPLICIDAD · ACTIVADA', warpX: -0.06, warpY: 0 },
+  { id: 'picaro', label: 'Pícaro', caption: 'Arrastra la frente o las mejillas. También puedes elegir un gesto.', mood: 'PÍCARO · EN REPOSO' },
+  { id: 'sorpresa', label: 'Sorpresa', caption: 'Esa idea acaba de desbloquear algo.', mood: 'SORPRESA · +1 IDEA' },
+  { id: 'mejillas', label: 'Mejillas', caption: 'Un poco de presión. Todavía queda paciencia.', mood: 'PACIENCIA · COMPRIMIDA' },
+  { id: 'guino', label: 'Guiño', caption: 'No todo va a ser ponerse serio.', mood: 'COMPLICIDAD · ACTIVADA' },
 ];
-const portraitImages = new Map<string, HTMLImageElement>();
 
 export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
   const stageRef = useRef<HTMLElement | null>(null);
@@ -42,7 +38,8 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
   const leftColRef = useRef<HTMLDivElement | null>(null);
   const rightColRef = useRef<HTMLDivElement | null>(null);
   const facetCardRef = useRef<HTMLDivElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const draggingRef = useRef(false);
+  const [impulse, setImpulse] = useState(0);
 
   const [activePreset, setActivePreset] = useState<PortraitPreset>(PORTRAIT_PRESETS[0]);
   const [activeFacetIdx, setActiveFacetIdx] = useState<number>(0);
@@ -56,30 +53,6 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
   useEffect(() => () => { if (resetTimerRef.current) clearTimeout(resetTimerRef.current); }, []);
   const manualInteractionRef = useRef<number>(0);
   const manualMobilePanelRef = useRef<number>(0);
-
-  const pointerRef = useRef({
-    dragging: false,
-    startX: 0,
-    startY: 0,
-    currX: 0,
-    currY: 0,
-    velX: 0,
-    velY: 0,
-    dispX: 0,
-    dispY: 0,
-    anchorU: 0.5,
-    anchorV: 0.5,
-  });
-
-  useEffect(() => {
-    const p = pointerRef.current;
-    if (!p.dragging && !reducedMotion) {
-      p.anchorU = 0.5;
-      p.anchorV = 0.48;
-      p.velX += activePreset.warpX * 150;
-      p.velY += activePreset.warpY * 150;
-    }
-  }, [activePreset, reducedMotion]);
 
   useEffect(() => {
     let lastAutoIdx = -1;
@@ -112,7 +85,7 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
       // En móvil (< 1024px), la primera mitad del scroll muestra el retrato elástico (0.00..0.42)
       // y la segunda mitad recorre las 4 facetas y la música (0.42..1.00)
       const now = Date.now();
-      if (!pointerRef.current.dragging && now - manualMobilePanelRef.current > 3500) {
+      if (!draggingRef.current && now - manualMobilePanelRef.current > 3500) {
         const nextMobilePanel = p < 0.42 ? 'portrait' : 'facets';
         if (nextMobilePanel !== lastMobilePanel) {
           lastMobilePanel = nextMobilePanel;
@@ -137,185 +110,34 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
     });
   }, []);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    for (const preset of PORTRAIT_PRESETS) {
-      if (!portraitImages.has(preset.src)) {
-        const image = new Image();
-        image.src = preset.src;
-        portraitImages.set(preset.src, image);
-      }
-    }
-    const img = portraitImages.get(activePreset.src)!;
-
-    let rafId = 0;
-    const cols = 14;
-    const rows = 16;
-
-    const render = () => {
-      if (isSceneActiveRef.current) {
-        const width = canvas.width;
-        const height = canvas.height;
-        ctx.clearRect(0, 0, width, height);
-
-        const p = pointerRef.current;
-        if (!p.dragging) {
-          const stiffness = reducedMotion ? 0.35 : 0.14;
-          const damping = reducedMotion ? 0.5 : 0.82;
-          const forceX = -stiffness * p.dispX;
-          const forceY = -stiffness * p.dispY;
-          p.velX = (p.velX + forceX) * damping;
-          p.velY = (p.velY + forceY) * damping;
-          p.dispX += p.velX;
-          p.dispY += p.velY;
-        }
-
-        if (img.complete && img.naturalWidth > 0) {
-          const frameWidth = activePreset.frame === undefined ? img.naturalWidth : img.naturalWidth / 2;
-          const frameHeight = activePreset.frame === undefined ? img.naturalHeight : img.naturalHeight / 2;
-          const frameX = activePreset.frame === undefined ? 0 : (activePreset.frame % 2) * frameWidth;
-          const frameY = activePreset.frame === undefined ? 0 : Math.floor(activePreset.frame / 2) * frameHeight;
-          const imgAspect = frameWidth / frameHeight;
-          const canvasAspect = width / height;
-          let sx = 0;
-          let sy = 0;
-          let sw = frameWidth;
-          let sh = frameHeight;
-
-          if (imgAspect > canvasAspect) {
-            sw = frameHeight * canvasAspect;
-            sx = (frameWidth - sw) * 0.5;
-          } else {
-            sh = frameWidth / canvasAspect;
-            sy = (frameHeight - sh) * 0.2;
-          }
-
-          const cellW = width / cols;
-          const cellH = height / rows;
-          const srcCellW = sw / cols;
-          const srcCellH = sh / rows;
-
-          for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-              const u = (c + 0.5) / cols;
-              const v = (r + 0.5) / rows;
-
-              const dx = u - p.anchorU;
-              const dy = v - p.anchorV;
-              const distSq = dx * dx + dy * dy;
-              const influence = Math.exp(-distSq / 0.11);
-
-              const edgeFade =
-                Math.sin(u * Math.PI) * Math.sin(v * Math.PI);
-
-              const offsetX = p.dispX * influence * edgeFade;
-              const offsetY = p.dispY * influence * edgeFade;
-
-              const scaleWarpX = 1 + (offsetX / width) * 0.45;
-              const scaleWarpY = 1 + (offsetY / height) * 0.45;
-
-              ctx.save();
-              ctx.translate(c * cellW + offsetX, r * cellH + offsetY);
-              ctx.scale(scaleWarpX, scaleWarpY);
-              ctx.drawImage(
-                img,
-                frameX + sx + c * srcCellW,
-                frameY + sy + r * srcCellH,
-                srcCellW + 1.2,
-                srcCellH + 1.2,
-                -0.6,
-                -0.6,
-                cellW + 1.4,
-                cellH + 1.4,
-              );
-              ctx.restore();
-            }
-          }
-
-          const stretchMag = Math.hypot(p.dispX, p.dispY);
-          if (stretchMag > 4) {
-            const ax = p.anchorU * width + p.dispX * 0.65;
-            const ay = p.anchorV * height + p.dispY * 0.65;
-            ctx.beginPath();
-            ctx.arc(ax, ay, Math.min(28, 10 + stretchMag * 0.12), 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(6, 182, 212, 0.75)';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-          }
-        } else {
-          ctx.fillStyle = '#121212';
-          ctx.fillRect(0, 0, width, height);
-        }
-      }
-      rafId = requestAnimationFrame(render);
-    };
-
-    rafId = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(rafId);
-  }, [activePreset, reducedMotion]);
-
-  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const handleGrab = (u: number, v: number) => {
     manualInteractionRef.current = Date.now();
     manualMobilePanelRef.current = Date.now();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const u = (e.clientX - rect.left) / rect.width;
-    const v = (e.clientY - rect.top) / rect.height;
-
-    const p = pointerRef.current;
+    draggingRef.current = true;
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    p.dragging = true;
-    p.anchorU = u;
-    p.anchorV = v;
-    p.startX = e.clientX;
-    p.startY = e.clientY;
-    canvas.setPointerCapture(e.pointerId);
+    const index = v < 0.3 ? 1 : u > 0.55 ? 3 : 2;
+    setActivePreset(PORTRAIT_PRESETS[index]);
   };
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    const p = pointerRef.current;
-    if (!p.dragging) return;
-    const dx = e.clientX - p.startX;
-    const dy = e.clientY - p.startY;
-    p.dispX = reducedMotion ? 0 : clamp(dx * 0.6, -75, 75);
-    p.dispY = reducedMotion ? 0 : clamp(dy * 0.6, -75, 75);
-    if (Math.hypot(dx, dy) > 8) {
-      const index = p.anchorV < 0.38 || dy < -25 ? 1 : p.anchorU > 0.55 ? 3 : 2;
-      setActivePreset(PORTRAIT_PRESETS[index]);
-    }
-  };
-
-  const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    const p = pointerRef.current;
-    if (!p.dragging) return;
-    p.dragging = false;
+  const handleRelease = (cancelled: boolean) => {
+    draggingRef.current = false;
     manualMobilePanelRef.current = Date.now();
-    resetTimerRef.current = setTimeout(() => setActivePreset(PORTRAIT_PRESETS[0]), 1200);
-    setStretchCount((c) => c + 1);
-    setPatienceLevel((lvl) => (lvl <= 18 ? 96 : lvl - 9));
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch {
-      // ignore
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    resetTimerRef.current = setTimeout(() => setActivePreset(PORTRAIT_PRESETS[0]), 1600);
+    if (!cancelled) {
+      setStretchCount((count) => count + 1);
+      setPatienceLevel((level) => level <= 18 ? 96 : level - 9);
     }
   };
 
   const triggerSpringPoke = () => {
     manualInteractionRef.current = Date.now();
-    const p = pointerRef.current;
-    p.anchorU = 0.35 + Math.random() * 0.3;
-    p.anchorV = 0.35 + Math.random() * 0.3;
+    manualMobilePanelRef.current = Date.now();
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     setActivePreset(PORTRAIT_PRESETS[1 + Math.floor(Math.random() * 3)]);
-    p.velX = reducedMotion ? 0 : (Math.random() - 0.5) * 90;
-    p.velY = reducedMotion ? 0 : (Math.random() - 0.5) * 90;
-    resetTimerRef.current = setTimeout(() => setActivePreset(PORTRAIT_PRESETS[0]), 1200);
-    setStretchCount((c) => c + 1);
+    setImpulse((value) => value + 1);
+    resetTimerRef.current = setTimeout(() => setActivePreset(PORTRAIT_PRESETS[0]), 1600);
+    setStretchCount((count) => count + 1);
   };
 
   const activeFacet = personalFacets[activeFacetIdx] || personalFacets[0];
@@ -402,11 +224,11 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
         {/* Columna izquierda: Retrato Elástico Otis (5 cols) */}
         <div
           ref={leftColRef}
-          className={`lg:col-span-5 rounded-2xl border border-white/[0.08] bg-[#121212]/92 backdrop-blur-md p-3 sm:p-4 space-y-2.5 will-change-transform ${
+          className={`relative z-10 lg:col-span-5 rounded-2xl border border-white/[0.08] bg-[#121212]/92 p-3 sm:p-4 space-y-2.5 will-change-transform ${
             mobilePanel === 'portrait' ? 'block' : 'hidden lg:block'
           }`}
         >
-          <div className="flex items-center justify-between gap-2">
+          <div className="relative z-20 flex items-center justify-between gap-2">
             <h3 className="font-mono text-xs sm:text-sm font-bold text-[#f5f5f5]">
               Retrato Elástico · Arrastra la cara
             </h3>
@@ -420,36 +242,27 @@ export function PlayfulOtisLab({ reducedMotion }: { reducedMotion: boolean }) {
             </button>
           </div>
 
-          <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#05070c] max-h-[38svh] sm:max-h-[42svh]">
-            <canvas
-              ref={canvasRef}
-              role="img"
-              aria-label={`Retrato interactivo de Synji: ${activePreset.label}. Arrastra para cambiar el gesto o utiliza los botones inferiores.`}
-              width={420}
-              height={440}
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              onPointerCancel={handlePointerUp}
-              onLostPointerCapture={handlePointerUp}
-              className="w-full h-auto max-h-[38svh] sm:max-h-[42svh] object-cover cursor-grab active:cursor-grabbing touch-none select-none block"
+          <div className="relative isolate overflow-visible">
+            <ElasticPortrait
+              preset={PORTRAIT_PRESETS.indexOf(activePreset)}
+              label={activePreset.label}
+              reducedMotion={reducedMotion}
+              activeRef={isSceneActiveRef}
+              impulse={impulse}
+              onGrab={handleGrab}
+              onRelease={handleRelease}
             />
-
-            <div className="pointer-events-none absolute top-2 left-2 right-2 flex items-center justify-between font-mono text-[10px]">
-              <span className="rounded-full border border-white/[0.12] bg-[#0a0a0a]/85 px-2.5 py-0.5 text-[#f5f5f5]">
-                {activePreset.mood}
-              </span>
-              <span className="rounded-full border border-[#06B6D4]/30 bg-[#0a0a0a]/85 px-2.5 py-0.5 text-[#06B6D4] tabular-nums">
-                TIRONES: {stretchCount}
-              </span>
-            </div>
-
-            <div className="pointer-events-none absolute bottom-2 left-2 right-2 rounded-lg border border-white/[0.08] bg-[#0a0a0a]/85 backdrop-blur-md p-2">
-              <p className="text-[11px] text-[#f5f5f5] leading-snug">{activePreset.caption}</p>
-            </div>
           </div>
 
-          <div className="flex flex-wrap gap-1.5">
+          <div className="relative z-10 flex items-center justify-between gap-2 font-mono text-[10px]" aria-live="polite" aria-atomic="true">
+            <span className="text-[#f5f5f5]">{activePreset.mood}</span>
+            <span className="text-[#06B6D4] tabular-nums">TIRONES: {stretchCount}</span>
+          </div>
+          <p className="relative z-10 text-[11px] text-[#a3a3a3] leading-snug">
+            {reducedMotion ? 'Movimiento reducido: elige un gesto con los botones.' : activePreset.caption}
+          </p>
+
+          <div className="relative z-20 flex flex-wrap gap-1.5">
             {PORTRAIT_PRESETS.map((preset) => {
               const selected = preset.id === activePreset.id;
               return (
