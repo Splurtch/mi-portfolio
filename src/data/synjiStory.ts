@@ -111,8 +111,8 @@ export const heroData = {
     },
   ],
   contacts: {
-    email: 'shinjimulatiere@gmail.com',
-    phone: '+34 657 290 057',
+    email: 'estrategia@digitalsynapse.es',
+    phone: '+34 626 040 087',
     linkedin: 'https://www.linkedin.com/in/synji-de-paula-mulatiere',
     github: 'https://github.com/Splurtch',
     website: 'https://digitalsynapse.es/',

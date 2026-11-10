@@ -343,10 +343,13 @@ export function ContactTerminal() {
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#a3a3a3]">
-              <span className="inline-flex items-center gap-1.5">
+              <a
+                href={`tel:${heroProfile.contacts.phone.replace(/\s/g, '')}`}
+                className="inline-flex items-center gap-1.5"
+              >
                 <Phone className="h-3.5 w-3.5 text-[#06B6D4]" />
                 {heroProfile.contacts.phone}
-              </span>
+              </a>
               <span className="inline-flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5 text-[#06B6D4]" />
                 La Nucía · Alicante
